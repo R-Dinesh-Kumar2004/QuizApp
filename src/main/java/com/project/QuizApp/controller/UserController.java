@@ -1,12 +1,14 @@
 package com.project.QuizApp.controller;
 
 import com.project.QuizApp.model.Question;
-import com.project.QuizApp.service.QuestionService;
+import com.project.QuizApp.model.TestHistory;
+import com.project.QuizApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -14,37 +16,35 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    QuestionService questionService;
-
-    @GetMapping("/learn/getAllQuestions")
-    public ResponseEntity<List<Question>> getAllQuestions() {
-        return new ResponseEntity<>(questionService.getAllQuestions(), HttpStatus.OK);
-    }
+    UserService userService;
 
     @GetMapping("/learn/questions/topic/{topic}")
     public ResponseEntity<List<Question>> getAllQuestionsByTopic(@PathVariable String topic) {
-        return new ResponseEntity<>(questionService.getAllQuestionsByTopic(topic),HttpStatus.OK);
-    }
-
-    @GetMapping("/learn/questions/difficulty/{difficulty}")
-    public ResponseEntity<List<Question>> getQuestionsByDifficulty(@PathVariable String difficulty) {
-        return new ResponseEntity<>(questionService.getAllQuestionsByDifficulty(difficulty), HttpStatus.OK);
-    }
-
-    @GetMapping("/learn/questions/{topic}/{difficulty}")
-    public ResponseEntity<List<Question>> getQuestionsByTopicAndDifficulty(
-            @PathVariable String topic,
-            @PathVariable String difficulty) {
-        return new ResponseEntity<>(questionService.getAllQuestionsByTopicAndDifficulty(topic, difficulty), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getAllQuestionsByTopic(topic),HttpStatus.OK);
     }
 
     @GetMapping("/test/questions/topic/{topic}/{numQuestions}")
     public ResponseEntity<List<Question>> getQuestionForTestByTopic(@PathVariable String topic,@PathVariable int numQuestions) {
-        return new ResponseEntity<>(questionService.getQuestionForTestByTopic(topic,numQuestions), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getQuestionForTestByTopic(topic,numQuestions), HttpStatus.OK);
     }
 
-    @GetMapping("/test/questions/mixedQuestions/{numQuestions}")
-    public ResponseEntity<List<Question>> getMixedQuestions(@PathVariable int numQuestions) {
-        return new ResponseEntity<>(questionService.getMixedQuestion(numQuestions),HttpStatus.OK);
+    @GetMapping("/test/mixedQuestions")
+    public ResponseEntity<List<Question>> getMixedQuestion() {
+        return new ResponseEntity<>(userService.getMixedQuestion(),HttpStatus.OK);
+    }
+
+    @GetMapping("/testHistory")
+    public ResponseEntity<List<TestHistory>> testHistory(Principal principal) {
+        String email = principal.getName();
+        return new ResponseEntity<>(userService.getAllTestHistory(email),HttpStatus.OK);
+    }
+
+    @PutMapping("/addNewTestScore")
+    public ResponseEntity<Boolean> addNewTestScore(@RequestBody TestHistory testHistory){
+        return userService.addNewTestScore(testHistory);
+    }
+
+    public ResponseEntity<List<String>> getAllTopic(){
+        return userService.getAllTopic();
     }
 }

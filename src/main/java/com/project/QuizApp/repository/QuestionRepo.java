@@ -11,10 +11,6 @@ import java.util.List;
 public interface QuestionRepo extends JpaRepository<Question,Integer> {
     List<Question> findAllByTopic(String topic);
 
-    List<Question> findAllByTopicAfterAndDifficultyLevel(String topic, String difficulty);
-
-    List<Question> findAllByDifficultyLevel(String difficulty);
-
     @Query(value = "SELECT DISTINCT q.topic FROM Question q",nativeQuery = true)
     List<String> getAllTopic();
 

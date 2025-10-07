@@ -1,76 +1,83 @@
 package com.project.QuizApp.service;
 
+import com.project.QuizApp.model.Question;
+import com.project.QuizApp.model.TestHistory;
 import com.project.QuizApp.model.User;
+import com.project.QuizApp.repository.QuestionRepo;
 import com.project.QuizApp.repository.UserRepo;
-import com.project.QuizApp.util.UserAlreadyExistException;
+import com.project.QuizApp.util.InternalServerErrorException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     @Autowired
-    UserRepo userRepo;
+    QuestionRepo questionRepo;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    UserRepo userRepo;
 
-    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
-
-    public ResponseEntity<String> addUser(User user) {
-        Optional<User> isEmailExist = userRepo.findByUserEmail(user.getUserEmail());
-
-        if (isEmailExist.isPresent()) {
-            throw new UserAlreadyExistException("User exist");
-        }
-
-        user.setPassword(encoder.encode(user.getPassword()));
-        userRepo.save(user);
-
-        return new ResponseEntity<>("User created", HttpStatus.CREATED);
+    public List<Question> getAllQuestionsByTopic(String topic) {
+        return questionRepo.findAllByTopic(topic);
     }
 
-    public ResponseEntity<Boolean> verifyUser(User user) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                user.getUserEmail(),user.getPassword()
-        ));
-
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-
-        if (authentication.isAuthenticated()) {
-            for(GrantedAuthority authority : authorities) {
-                if (authority.getAuthority().equals("ROLE_USER")) {
-                    return ResponseEntity.ok(true);
-                }
-            }
-        }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    public List<Question> getQuestionForTestByTopic(String topic,int numQuestions) {
+        return questionRepo.findRandomQuestionByTopic(topic, (Pageable) PageRequest.of(0,numQuestions));
     }
 
-    public ResponseEntity<Boolean> verifyAdmin(User user) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                user.getUserEmail(),user.getPassword()
-        ));
+    public List<Question> getMixedQuestion() {
+        List<String> allTopic = questionRepo.getAllTopic();
 
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        int limit = 5;
 
-        if (authentication.isAuthenticated()) {
-            for(GrantedAuthority authority : authorities) {
-                if (authority.getAuthority().equals("ROLE_ADMIN")) {
-                    return ResponseEntity.ok(true);
-                }
-            }
+        List<Question> result = new ArrayList<>();
+
+        for(String topic : allTopic){
+            result.addAll(getQuestionForTestByTopic(topic,limit));
         }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+        Random random = new Random();
+        Collections.shuffle(result,random);
+
+        return result;
+    }
+
+    public List<TestHistory> getAllTestHistory(String email) {
+        Optional<User> user = userRepo.findByEmail(email);
+        if(user.isPresent()){
+            List<TestHistory> result = user.get().getTestHistory().stream()
+                    .sorted(Comparator.comparing(TestHistory::getTestDate).reversed())
+                    .collect(Collectors.toList());
+
+            return result;
+        }
+        else throw new InternalServerErrorException("User Not found with email "+email);
+    }
+
+    public ResponseEntity<Boolean> addNewTestScore(TestHistory testHistory) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        Optional<User> user = userRepo.findByEmail(email);
+
+        if(user.isPresent()){
+            user.get().getTestHistory().add(testHistory);
+            return ResponseEntity.ok(true);
+        }
+        else throw new InternalServerErrorException("User Not found with email "+email);
+    }
+
+    public ResponseEntity<List<String>> getAllTopic() {
+        return new ResponseEntity<>(questionRepo.getAllTopic() ,HttpStatus.OK);
     }
 }

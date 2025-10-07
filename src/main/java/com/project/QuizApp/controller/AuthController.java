@@ -1,9 +1,10 @@
 package com.project.QuizApp.controller;
 
+import com.project.QuizApp.model.Admin;
 import com.project.QuizApp.model.UnAuthorizedAdmin;
 import com.project.QuizApp.model.User;
+import com.project.QuizApp.service.AuthService;
 import com.project.QuizApp.service.UnAuthorizedAdminService;
-import com.project.QuizApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,29 +15,28 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired
-    UserService userService;
+    AuthService authService;
 
     @Autowired
     UnAuthorizedAdminService unAuthorizedAdminService;
 
-    @PostMapping("/addUser")
+    @PostMapping("/add/user")
     public ResponseEntity<String> addUser(@RequestBody User user) {
-        return userService.addUser(user);
+        return authService.addUser(user);
     }
 
-    @PostMapping("/addUnAuthorizedAdmin")
+    @PostMapping("/add/unAuthorizedAdmin")
     public ResponseEntity<String> addUnAuthorizedAdmin(@RequestBody UnAuthorizedAdmin admin){
         return unAuthorizedAdminService.addAdmin(admin);
     }
 
-    @PostMapping("/userLogin")
+    @PostMapping("/login/user")
     public ResponseEntity<Boolean> userlogin(@RequestBody User user){
-        return userService.verifyUser(user);
+        return authService.verifyUser(user);
     }
 
-    @PostMapping("/adminLogin")
-    public ResponseEntity<Boolean> adminLogin(@RequestBody User user){
-        System.out.println(user.toString());
-        return userService.verifyAdmin(user);
+    @PostMapping("/login/admin")
+    public ResponseEntity<Boolean> adminLogin(@RequestBody Admin admin){
+        return authService.verifyAdmin(admin);
     }
 }

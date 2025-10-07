@@ -2,10 +2,7 @@ package com.project.QuizApp.controller;
 
 
 import com.project.QuizApp.model.ExceptionHandlerLog;
-import com.project.QuizApp.util.InvalidOtpException;
-import com.project.QuizApp.util.OtpExpiredException;
-import com.project.QuizApp.util.UserAlreadyExistException;
-import com.project.QuizApp.util.UserNotFoundException;
+import com.project.QuizApp.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,6 +17,14 @@ public class GlobalExceptionHandler  {
     public ResponseEntity<?> handleException(Exception ex){
         return  new ResponseEntity<>(ex.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(InternalServerErrorException.class)
+    public ResponseEntity<?> handleInternalServerErrorException(InternalServerErrorException ex, WebRequest request) {
+        return new ResponseEntity<>(new ExceptionHandlerLog(
+                new Date(), ex.getMessage(), request.getDescription(false)),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     @org.springframework.web.bind.annotation.ExceptionHandler(UserAlreadyExistException.class)
     public ResponseEntity<?> handleUserAlreadyExistException(UserAlreadyExistException ex ,

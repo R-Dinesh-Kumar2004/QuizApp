@@ -6,27 +6,27 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-public class UserPrincipal implements UserDetails {
+public class AdminPrincipal implements UserDetails {
 
-    private User user;
+    private Admin admin;
 
-    public UserPrincipal(User user) {
-        this.user = user;
+    public AdminPrincipal(Admin admin) {
+        this.admin = admin;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(() -> "ROLE_USER");
+        return Collections.singleton(() ->  "ROLE_ADMIN");
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return admin.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return admin.getEmail();
     }
 
     @Override

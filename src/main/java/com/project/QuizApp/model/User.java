@@ -2,18 +2,21 @@ package com.project.QuizApp.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.util.List;
 
 
 @Entity
 @Data
 public class User {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(nullable = false, unique = true)
-    private String userEmail;
+    private String email;
     private String username;
     private String password;
-    private String role;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<TestHistory> testHistory;
 }

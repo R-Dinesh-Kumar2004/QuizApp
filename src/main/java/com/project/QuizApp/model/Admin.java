@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Entity
 @Data
-public class UnAuthorizedAdmin {
+public class Admin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
